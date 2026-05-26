@@ -22,13 +22,13 @@ Of met uv:
 uv add eencijfermbo
 ```
 
-Voor de Streamlit UI:
+## Gebruik
+
+### Streamlit UI
 
 ```bash
-uv add "eencijfermbo[frontend]"
+uv sync --extra frontend && uv run streamlit run src/frontend/main.py
 ```
-
-## Gebruik
 
 ### CLI
 
@@ -36,12 +36,6 @@ uv add "eencijfermbo[frontend]"
 eencijfermbo pipeline --input data/01-raw/ --output data/02-prepared/
 eencijfermbo ingest RO_27DV_20240731_20260324.csv
 eencijfermbo pipeline --input data/ --output output/ --formaat parquet
-```
-
-### Streamlit UI
-
-```bash
-uv run streamlit run src/frontend/main.py
 ```
 
 ### Python
