@@ -1,0 +1,56 @@
+[project]
+name = "eencijfermbo"
+version = "0.1.0"
+description = "ETL-tool voor DUO MBO-bestanden (H15/H16/H17) naar schone CSV/Parquet"
+readme = "README.md"
+license = { text = "EUPL-1.2" }
+requires-python = ">=3.12"
+dependencies = [
+    "polars>=1.0",
+    "lxml>=5.0",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+frontend = [
+    "streamlit>=1.41",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.9",
+    "ty>=0.0.1a6",
+]
+
+[project.scripts]
+eencijfermbo = "eencijfermbo.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eencijfermbo"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.9",
+    "ty>=0.0.1a6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "ANN"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=eencijfermbo --cov-report=term-missing"
+
+[tool.ty]
+python = ".venv"

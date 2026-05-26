@@ -1,0 +1,17 @@
+{
+  "name": "1cijfermbo",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "anthropic.claude-code",
+    "n4eth.ty-type-checker"
+  ],
+  "postCreateCommand": "pip install uv && uv sync --extra frontend && uv pip install ty",
+  "forwardPorts": [8501],
+  "remoteUser": "vscode",
+  "settings": {
+    "editor.formatOnSave": true,
+    "python.testing.pytestEnabled": true
+  }
+}

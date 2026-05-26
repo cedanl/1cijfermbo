@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+.uv_cache/
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Data — alleen demo mag in git
+data/01-raw/*
+data/02-prepared/*
+data/03-output/*
+!data/01-raw/demo/
+!data/02-prepared/demo/
+!data/03-output/demo/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.DS_Store
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Streamlit
+.streamlit/secrets.toml
