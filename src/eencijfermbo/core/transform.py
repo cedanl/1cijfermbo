@@ -54,17 +54,19 @@ def derive_leeftijd(df: pl.DataFrame) -> pl.DataFrame:
 def derive_dropout(df: pl.DataFrame) -> pl.DataFrame:
     """Voeg dropout-kolom toe: uitgeschreven zonder diploma.
 
-    Definitie: uitschrijving_reden is ingevuld én heeft_diploma is False.
-    Beperking: in een snapshot-levering is niet te controleren of de student
-    later elders heringeschreven is.
+    Uitgeschreven = uitschrijving_datum is ingevuld (H15/H16/H17) OF
+    uitschrijving_reden is ingevuld (H15/H17). H16 heeft geen reden-code.
+    Beperking: snapshot-levering toont geen herinschrijving elders.
     """
-    return df.with_columns(
-        (
+    uitgeschreven = pl.lit(False)
+    if "uitschrijving_datum" in df.schema:
+        uitgeschreven = uitgeschreven | pl.col("uitschrijving_datum").is_not_null()
+    if "uitschrijving_reden" in df.schema:
+        uitgeschreven = uitgeschreven | (
             pl.col("uitschrijving_reden").is_not_null()
             & (pl.col("uitschrijving_reden") != "")
-            & ~pl.col("heeft_diploma")
-        ).alias("dropout")
-    )
+        )
+    return df.with_columns((uitgeschreven & ~pl.col("heeft_diploma")).alias("dropout"))
 
 
 def derive_vooropleiding_categorie(df: pl.DataFrame) -> pl.DataFrame:
