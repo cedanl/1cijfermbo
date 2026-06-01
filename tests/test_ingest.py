@@ -13,12 +13,30 @@ H16_DIR = DEMO / "h16"
 H17_DIR = DEMO / "h17"
 
 VERWACHTE_KOLOMMEN = {
-    "bsn", "brin", "geslacht", "heeft_diploma",
-    "inschrijving_start", "inschrijving_eind", "uitschrijving_reden",
-    "uitschrijving_datum", "leertraject", "opleidingscode",
-    "vorig_onderwijs_niveau", "vorig_onderwijs_graad", "geboortedatum", "leeftijd",
-    "niveau_mbo", "diploma_datum", "diploma_crebo",
-    "bpv_stages_aantal", "bpv_uren_totaal", "kzd_behaald_aantal",
+    "bsn",
+    "brin",
+    "geslacht",
+    "heeft_diploma",
+    "inschrijving_start",
+    "inschrijving_eind",
+    "uitschrijving_reden",
+    "uitschrijving_datum",
+    "leertraject",
+    "opleidingscode",
+    "vorig_onderwijs_niveau",
+    "vorig_onderwijs_graad",
+    "geboortedatum",
+    "leeftijd",
+    "niveau_mbo",
+    "diploma_datum",
+    "diploma_crebo",
+    "bpv_stages_aantal",
+    "bpv_uren_totaal",
+    "kzd_behaald_aantal",
+    "geboorteland",
+    "geboorteland_ouder_1",
+    "geboorteland_ouder_2",
+    "nationaliteit_2",
 }
 
 
@@ -79,6 +97,17 @@ def test_parse_grondslag_ip_postcode(pad: Path) -> None:
     df = parse_grondslag_ip(pad)
     assert "postcode" in df.columns
     assert df["postcode"].is_not_null().any(), "Geen postcodes geparsed uit H17"
+
+
+@pytest.mark.skipif(not H17_DIR.exists(), reason="Geen H17 demo-data")
+@pytest.mark.parametrize("pad", _h17_bestanden())
+def test_parse_grondslag_ip_herkomst(pad: Path) -> None:
+    df = parse_grondslag_ip(pad)
+    assert "geboorteland" in df.columns
+    assert "geboorteland_ouder_1" in df.columns
+    assert "geboorteland_ouder_2" in df.columns
+    assert "nationaliteit_2" in df.columns
+    assert df["geboorteland"].is_not_null().any(), "Geen geboortelandcodes geparsed uit H17"
 
 
 def test_parse_ro_lege_dataframe_als_geen_data(tmp_path: Path) -> None:
