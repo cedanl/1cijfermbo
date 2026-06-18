@@ -42,7 +42,9 @@ else:
     st.success("Geen ontbrekende waarden.")
 
 st.subheader("Afleidingen (preview)")
-transformeer = st.checkbox("Pas afleidingen toe (cohortjaar, leeftijd, dropout, vooropleiding)", value=True)
+transformeer = st.checkbox(
+    "Pas afleidingen toe (cohortjaar, leeftijd, dropout, vooropleiding)", value=True
+)
 if transformeer:
     try:
         df_t = derive_cohortjaar(df)

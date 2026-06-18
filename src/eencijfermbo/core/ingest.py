@@ -13,9 +13,12 @@ worden geaggregeerd per student.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import polars as pl
+
+if TYPE_CHECKING:
+    from lxml.etree import _Element
 
 _XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -27,6 +30,10 @@ _SCHEMA: dict[str, pl.DataType] = {
     "leeftijd": pl.Int64,
     "postcode": pl.String,
     "nationaliteitscode": pl.String,
+    "nationaliteit_2": pl.String,
+    "geboorteland": pl.String,
+    "geboorteland_ouder_1": pl.String,
+    "geboorteland_ouder_2": pl.String,
     "inschrijving_start": pl.Date,
     "inschrijving_eind": pl.Date,
     "uitschrijving_datum": pl.Date,
@@ -92,9 +99,13 @@ def parse_grondslag_ip(path: str | Path) -> pl.DataFrame:
                 if not bsn:
                     continue
                 students[bsn] = _init_student_record(bsn, brin=None, geslacht=_get(parts, 6))
-                students[bsn]["leeftijd"] = _int(_get(parts, 3))
+                students[bsn]["leeftijd"] = _int(_get(parts, 2))
                 students[bsn]["postcode"] = _nonempty(_get(parts, 7))
+                students[bsn]["geboorteland"] = _nonempty(_get(parts, 11))
+                students[bsn]["geboorteland_ouder_1"] = _nonempty(_get(parts, 12))
+                students[bsn]["geboorteland_ouder_2"] = _nonempty(_get(parts, 13))
                 students[bsn]["nationaliteitscode"] = _nonempty(_get(parts, 16))
+                students[bsn]["nationaliteit_2"] = _nonempty(_get(parts, 17))
 
             elif rt == "ISG" and _get(parts, 1) in students:
                 s = students[parts[1]]
@@ -199,6 +210,10 @@ def _init_student_record(bsn: str, brin: str | None, geslacht: str | None) -> di
         "leeftijd": None,
         "postcode": None,
         "nationaliteitscode": None,
+        "nationaliteit_2": None,
+        "geboorteland": None,
+        "geboorteland_ouder_1": None,
+        "geboorteland_ouder_2": None,
         "inschrijving_start": None,
         "inschrijving_eind": None,
         "uitschrijving_datum": None,
@@ -259,9 +274,7 @@ def _update_isp_h17(s: dict[str, Any], parts: list[str]) -> None:
     s["kwalificatiedossier"] = _nonempty(_get(parts, 12))
 
 
-def _update_bpv(
-    s: dict[str, Any], parts: list[str], uren_pos: int, leerbedrijf_pos: int
-) -> None:
+def _update_bpv(s: dict[str, Any], parts: list[str], uren_pos: int, leerbedrijf_pos: int) -> None:
     s["bpv_stages_aantal"] += 1
     uren = _int(_get(parts, uren_pos))
     if uren:
@@ -292,9 +305,7 @@ def _update_geo_h17(s: dict[str, Any], parts: list[str]) -> None:
     s["vorig_onderwijs_graad"] = _int(_get(parts, 8))
 
 
-def _update_kzd(
-    s: dict[str, Any], parts: list[str], code_pos: int, status_pos: int
-) -> None:
+def _update_kzd(s: dict[str, Any], parts: list[str], code_pos: int, status_pos: int) -> None:
     code = _nonempty(_get(parts, code_pos))
     status = (_get(parts, status_pos) or "").upper()
     if "BEHAALD" in status and "NIET" not in status:
@@ -303,7 +314,7 @@ def _update_kzd(
         s["_kzd_list"].append(code)
 
 
-def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
+def _extract_tbgi_inschrijving(node: _Element) -> dict[str, Any]:
     """Extraheer alle velden uit een TBG-i <Inschrijving> XML-element."""
 
     def text(tag: str) -> str | None:
@@ -334,6 +345,10 @@ def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
         "leeftijd": int(raw_leeftijd) if raw_leeftijd and raw_leeftijd.isdigit() else None,
         "postcode": None,
         "nationaliteitscode": None,
+        "nationaliteit_2": None,
+        "geboorteland": None,
+        "geboorteland_ouder_1": None,
+        "geboorteland_ouder_2": None,
         "inschrijving_start": text("DatumInschrijving"),
         "inschrijving_eind": text("DatumUitschrijvingGepland"),
         "uitschrijving_datum": text("DatumUitschrijvingWerkelijk"),
@@ -349,8 +364,12 @@ def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
         "diploma_crebo": None,
         "vorig_onderwijs_niveau": None,
         "vorig_onderwijs_graad": None,
-        "verblijfsjaar_mbo": int(raw_verblijfsjaar) if raw_verblijfsjaar and raw_verblijfsjaar.isdigit() else None,
-        "bekostigingsstatus": (raw_bekostigingsstatus == "true") if raw_bekostigingsstatus else None,
+        "verblijfsjaar_mbo": int(raw_verblijfsjaar)
+        if raw_verblijfsjaar and raw_verblijfsjaar.isdigit()
+        else None,
+        "bekostigingsstatus": (raw_bekostigingsstatus == "true")
+        if raw_bekostigingsstatus
+        else None,
         "bpv_stages_aantal": 0,
         "bpv_uren_totaal": 0,
         "bpv_leerbedrijf_id": None,
@@ -361,7 +380,7 @@ def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
     }
 
 
-def _merge_tbgi_diploma(node: Any, records: list[dict[str, Any]]) -> None:
+def _merge_tbgi_diploma(node: _Element, records: list[dict[str, Any]]) -> None:
     """Voeg diplomainfo uit H16 <Diploma> toe aan bijbehorend inschrijving-record."""
 
     def text(tag: str) -> str | None:
@@ -391,17 +410,25 @@ def _to_dataframe(records: list[dict[str, Any]], *, h15_dates: bool) -> pl.DataF
     if not records:
         return pl.DataFrame(schema=_SCHEMA)
 
-    df = pl.DataFrame(records, schema_overrides={
-        "leeftijd": pl.Int64,
-        "vorig_onderwijs_graad": pl.Int64,
-        "verblijfsjaar_mbo": pl.Int64,
-        "bpv_stages_aantal": pl.Int64,
-        "bpv_uren_totaal": pl.Int64,
-        "kzd_behaald_aantal": pl.Int64,
-    })
+    df = pl.DataFrame(
+        records,
+        schema_overrides={
+            "leeftijd": pl.Int64,
+            "vorig_onderwijs_graad": pl.Int64,
+            "verblijfsjaar_mbo": pl.Int64,
+            "bpv_stages_aantal": pl.Int64,
+            "bpv_uren_totaal": pl.Int64,
+            "kzd_behaald_aantal": pl.Int64,
+        },
+    )
 
-    date_cols = ["inschrijving_start", "inschrijving_eind", "uitschrijving_datum",
-                 "diploma_datum", "geboortedatum"]
+    date_cols = [
+        "inschrijving_start",
+        "inschrijving_eind",
+        "uitschrijving_datum",
+        "diploma_datum",
+        "geboortedatum",
+    ]
     for col in date_cols:
         if col in df.schema:
             df = _parse_date_col(df, col, mixed=h15_dates)
