@@ -13,9 +13,12 @@ worden geaggregeerd per student.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import polars as pl
+
+if TYPE_CHECKING:
+    from lxml.etree import _Element
 
 _XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -311,7 +314,7 @@ def _update_kzd(s: dict[str, Any], parts: list[str], code_pos: int, status_pos: 
         s["_kzd_list"].append(code)
 
 
-def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
+def _extract_tbgi_inschrijving(node: _Element) -> dict[str, Any]:
     """Extraheer alle velden uit een TBG-i <Inschrijving> XML-element."""
 
     def text(tag: str) -> str | None:
@@ -377,7 +380,7 @@ def _extract_tbgi_inschrijving(node: Any) -> dict[str, Any]:
     }
 
 
-def _merge_tbgi_diploma(node: Any, records: list[dict[str, Any]]) -> None:
+def _merge_tbgi_diploma(node: _Element, records: list[dict[str, Any]]) -> None:
     """Voeg diplomainfo uit H16 <Diploma> toe aan bijbehorend inschrijving-record."""
 
     def text(tag: str) -> str | None:

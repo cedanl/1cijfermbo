@@ -22,15 +22,34 @@ def _build_parser() -> argparse.ArgumentParser:
     # ingest
     p_ingest = sub.add_parser("ingest", help="Lees één DUO MBO-bestand in")
     p_ingest.add_argument("bestand", type=Path, help="Pad naar H15/H16/H17 bestand")
-    p_ingest.add_argument("--type", choices=["h15", "h16", "h17"], help="Bestandstype (optioneel, wordt anders geraden)")
-    p_ingest.add_argument("--output", "-o", type=Path, default=None, help="Uitvoerbestand (.csv of .parquet)")
+    p_ingest.add_argument(
+        "--type",
+        choices=["h15", "h16", "h17"],
+        help="Bestandstype (optioneel, wordt anders geraden)",
+    )
+    p_ingest.add_argument(
+        "--output", "-o", type=Path, default=None, help="Uitvoerbestand (.csv of .parquet)"
+    )
 
     # pipeline
     p_pipe = sub.add_parser("pipeline", help="Verwerk alle bestanden in een map")
-    p_pipe.add_argument("--input", "-i", type=Path, required=True, help="Invoermap met DUO-bestanden")
-    p_pipe.add_argument("--output", "-o", type=Path, required=True, help="Uitvoermap voor CSV/Parquet")
-    p_pipe.add_argument("--formaat", choices=["csv", "parquet"], default="csv", help="Uitvoerformaat (standaard: csv)")
-    p_pipe.add_argument("--geen-transform", action="store_true", help="Sla afleidingen (cohortjaar, dropout) over")
+    p_pipe.add_argument(
+        "--input", "-i", type=Path, required=True, help="Invoermap met DUO-bestanden"
+    )
+    p_pipe.add_argument(
+        "--output", "-o", type=Path, required=True, help="Uitvoermap voor CSV/Parquet"
+    )
+    p_pipe.add_argument(
+        "--formaat",
+        choices=["csv", "parquet"],
+        default="csv",
+        help="Uitvoerformaat (standaard: csv)",
+    )
+    p_pipe.add_argument(
+        "--geen-transform",
+        action="store_true",
+        help="Sla afleidingen (cohortjaar, dropout) over",
+    )
 
     return parser
 

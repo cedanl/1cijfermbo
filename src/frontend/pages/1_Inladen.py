@@ -36,7 +36,10 @@ for file in uploaded:
 
     with st.expander(f"**{file.name}** — {label}", expanded=True):
         if btype is None:
-            st.error(f"Kan bestandstype niet bepalen voor `{file.name}`. Verwacht: RO_*, TBGI_* of GRONDSLAG_IP_*.")
+            st.error(
+                f"Kan bestandstype niet bepalen voor `{file.name}`. "
+                "Verwacht: RO_*, TBGI_* of GRONDSLAG_IP_*."
+            )
             continue
         try:
             df = ingest_bestand(tmp_path, bestandstype=btype)
